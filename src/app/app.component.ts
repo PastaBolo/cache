@@ -1,6 +1,6 @@
-import { Component } from '@angular/core'
+import { Component } from '@angular/core';
 
-import { HeroService } from './hero.service'
+import { HeroService } from './hero.service';
 
 @Component({
   selector: 'app-root',
@@ -10,5 +10,11 @@ import { HeroService } from './hero.service'
 export class AppComponent {
   heroes = [];
 
-  constructor(public heroService: HeroService) { }
+  constructor(public heroService: HeroService) {
+    // heroService.hero$.subscribe(
+    //   v => console.log('component', v),
+    //   err => console.log('component', err),
+    //   () => console.log('component complete')
+    // );
+  }
 }

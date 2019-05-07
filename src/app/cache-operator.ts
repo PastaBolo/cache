@@ -1,18 +1,17 @@
-import { Observable, Observer, Subject, ReplaySubject, MonoTypeOperatorFunction, race, timer, defer } from 'rxjs'
-import { switchMap, tap, take } from 'rxjs/operators'
+import { Observable, Observer, Subject, ReplaySubject, MonoTypeOperatorFunction, race, timer, defer, EMPTY } from 'rxjs';
+import { switchMap, tap, take, switchMapTo, mergeMapTo, retryWhen, delayWhen, catchError } from 'rxjs/operators';
 
 export interface CacheOperatorConfig {
-  expiration?: number
-  clear$?: Observable<any>
+  expiration?: number;
+  clear$?: Observable<any>;
 }
 
 class ResettableSubject<T = any> extends Observable<T> implements Observer<T> {
-
   private resettableSubject: Subject<T>;
   private resetter = new ReplaySubject<void>(1);
 
   // source comes from Observable class
-  source: Observable<T> = this.resetter.pipe(switchMap(() => this.resettableSubject))
+  source = this.resetter.pipe(switchMap(() => this.resettableSubject));
 
   constructor(private subjectFactory: () => Subject<T> = () => new ReplaySubject(1)) {
     super();
@@ -33,60 +32,37 @@ class ResettableSubject<T = any> extends Observable<T> implements Observer<T> {
     this.resettableSubject = this.subjectFactory();
     this.resetter.next();
   }
-
-  // asObservable() { return this.resetter.pipe(switchMap(() => this.source.asObservable())); }
-  // asObservable() { return this.source; }
-
-  // subscribe(
-  //   observerOrNext?: PartialObserver<T> | ((value: T) => void),
-  //   error?: (error: any) => void,
-  //   complete?: () => void
-  //   ): Subscription {
-  //   return this.source.subscribe(observerOrNext, error, complete);       
-  // }
-
-  // toPromise() {
-  //   return new Promise<T>((resolve, reject) => {
-  //     let valueForResolve: T;
-  //     from(this.getValues()).pipe(last()).subscribe(
-  //       (value: T) => valueForResolve = value,
-  //       (err: any) => reject(err),
-  //       () => resolve(valueForResolve)
-  //     );
-  //   });
-  // }
-
-
-  // private getValues() {
-  //   const values: T[] = [];
-  //   this.source.subscribe(value => values.push(value)).unsubscribe();
-  //   return values;
-  // }
 }
 
 export const cache = <T>({ expiration, clear$ }: CacheOperatorConfig = {}): MonoTypeOperatorFunction<T> => (source$: Observable<T>) => {
-  const cache$ = new ResettableSubject<T>()
-  let expiredData = true
-  const fetchData$ = new Subject<void>()
+  const cache$ = new ResettableSubject<T>();
+  let expiredData = true;
+  let fetchingData = false;
+  const fetchData$ = new Subject<void>();
 
   fetchData$.pipe(
-    tap(() => expiredData = false),
-    switchMap(() => source$)
-  ).subscribe(cache$)
-
-  cache$.pipe(
-    switchMap(() => race(...[expiration && timer(expiration), clear$ && clear$].filter(Boolean))),
-    take(1),
+    tap(() => fetchingData = true),
+    switchMap(() => source$.pipe(catchError(error => {
+      fetchingData = false;
+      cache$.error(error);
+      return EMPTY;
+    }))),
+    tap(data => {
+      cache$.next(data);
+      fetchingData = false;
+      expiredData = false;
+    }),
+    switchMap(() => race(...[expiration && timer(expiration), clear$ && clear$.pipe(take(1))].filter(Boolean))),
     tap(() => {
-      expiredData = true
-      cache$.reset()
+      expiredData = true;
+      cache$.reset();
     })
-  ).subscribe(
-    () => { console.log('expired next', expiredData) }
-  )
+  ).subscribe();
 
   return defer(() => {
-    if (expiredData) { fetchData$.next() }
+    if (!fetchingData && expiredData) {
+      fetchData$.next();
+    }
     return cache$;
-  })
-}
+  });
+};
