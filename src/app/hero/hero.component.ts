@@ -24,9 +24,9 @@ export class HeroComponent {
       // retryWhen(() => this.retry$)
       // retry(3)
     ).subscribe(
-      hero => { this.error = false; this.hero = hero; },
-      err => { this.error = true; console.log(err); },
-      () => console.log('complete')
+      hero => { this.error = false; this.hero = hero; console.log('component', hero); },
+      err => { this.error = true; console.log('component', err); },
+      () => console.log('component complete')
     );
   }
 }

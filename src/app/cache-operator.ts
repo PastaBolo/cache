@@ -1,12 +1,14 @@
-import { Observable, Observer, Subject, ReplaySubject, MonoTypeOperatorFunction, race, timer, defer, EMPTY } from 'rxjs';
-import { switchMap, tap, take, switchMapTo, mergeMapTo, retryWhen, delayWhen, catchError } from 'rxjs/operators';
+import { Observable, Observer, Subject, ReplaySubject, MonoTypeOperatorFunction, race, timer, defer, EMPTY, NEVER } from 'rxjs';
+import { switchMap, switchMapTo, tap, finalize, take, catchError } from 'rxjs/operators';
 
 export interface CacheOperatorConfig {
   expiration?: number;
   clear$?: Observable<any>;
 }
 
-class ResettableSubject<T = any> extends Observable<T> implements Observer<T> {
+//TODO : voir https://github.com/ReactiveX/rxjs/blob/master/src/internal/operators/shareReplay.ts
+
+export class ResettableSubject<T = any> extends Observable<T> implements Observer<T> {
   private resettableSubject$: Subject<T>;
   private resetter$ = new ReplaySubject<void>(1);
 
@@ -43,18 +45,22 @@ export const cache = <T>({ expiration, clear$ }: CacheOperatorConfig = {}): Mono
 
   fetchData$.pipe(
     tap(() => fetchingData = true),
-    switchMapTo(source$.pipe(catchError(error => {
-      fetchingData = false;
-      cache$.error(error);
-      cache$.reset();
-      return EMPTY;
-    }))),
+    switchMap(() => source$.pipe(
+      catchError(error => {
+        fetchingData = false;
+        expiredData = true;
+        cache$.error(error);
+        cache$.reset();
+        return NEVER;
+      }),
+      // finalize(() => cache$.complete())
+    )),
     tap(data => {
       cache$.next(data);
       fetchingData = false;
       expiredData = false;
     }),
-    switchMapTo(race(...[expiration && timer(expiration), clear$ && clear$.pipe(take(1))].filter(Boolean))),
+    switchMap(() => race(...[expiration && timer(expiration), clear$ && clear$.pipe(take(1))].filter(Boolean))),
     tap(() => {
       expiredData = true;
       cache$.reset();
