@@ -10,14 +10,14 @@ import { HeroService, Hero } from '../hero.service';
     <!--{{ heroService.hero$ | async | json }}-->
     <ng-container *ngIf="hero">{{ hero | json }}</ng-container>
     <ng-container *ngIf="error">error</ng-container>
-    <button (click)="retry$.next()">retry</button>
+    <!--<button (click)="retry$.next()">retry</button>-->
   `,
   styles: []
 })
 export class HeroComponent {
   hero: Hero;
   error = false;
-  retry$ = new Subject<void>();
+  // retry$ = new Subject<void>();
 
   constructor(public heroService: HeroService) {
     heroService.hero$.pipe(

@@ -45,6 +45,7 @@ export const cache = <T>({ expiration, clear$ }: CacheOperatorConfig = {}): Mono
     switchMap(() => source$.pipe(catchError(error => {
       fetchingData = false;
       cache$.error(error);
+      cache$.reset();
       return EMPTY;
     }))),
     tap(data => {
