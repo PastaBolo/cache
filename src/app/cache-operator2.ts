@@ -6,6 +6,7 @@ export interface CacheOperatorConfig {
   clear$?: Observable<any>;
 }
 
+// inspired by https://stackoverflow.com/a/51147023
 export class ResettableSubject<T = any> extends Observable<T> implements Observer<T> {
   private resettableSubject$: Subject<T>;
   private resetter$ = new ReplaySubject<void>(1);
