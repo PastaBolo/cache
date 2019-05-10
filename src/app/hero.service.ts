@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { of, Subject, merge, ReplaySubject, noop, throwError, timer, iif, BehaviorSubject } from 'rxjs';
 
 import { cache } from './cache-operator';
-import { tap, switchMap, delay, take, switchMapTo } from 'rxjs/operators';
+import { tap, switchMap, delay, take, switchMapTo, shareReplay } from 'rxjs/operators';
 
 export interface Hero {
   name: string;
@@ -39,6 +39,8 @@ export class HeroService {
     this.updateHero$/*.pipe(tap(() => console.log('from update')))*/,
   ).pipe(
     cache({ expiration: 1000 })
+    // cache({ clear$: this.clearHeroCache$ })
+    // shareReplay()
   );
 
   // test = this.updateHero$.subscribe(
@@ -47,17 +49,17 @@ export class HeroService {
   //   () => console.log('updateHero$ complete')
   // );
 
-  merge = this.hero$.subscribe(
-    v => console.log('merge next', v),
-    err => console.log('merge error', err),
-    () => console.log('merge complete')
-  );
+  // merge = this.hero$.subscribe(
+  //   v => console.log('merge next', v),
+  //   err => console.log('merge error', err),
+  //   () => console.log('merge complete')
+  // );
 
-  merge2 = timer(1100).pipe(switchMapTo(this.hero$)).subscribe(
-    v => console.log('merge2 next', v),
-    err => console.log('merge2 error', err),
-    () => console.log('merge2 complete')
-  );
+  // merge2 = timer(1100).pipe(switchMapTo(this.hero$)).subscribe(
+  //   v => console.log('merge2 next', v),
+  //   err => console.log('merge2 error', err),
+  //   () => console.log('merge2 complete')
+  // );
 
   updateHero(hero: Hero) {
     this.hero = hero;
