@@ -4,7 +4,6 @@
 <button (click)="heroes.pop()">Remove</button>
 <button (click)="heroService.updateHero({name: 'Jacky', age: 58})">Update</button>
 <button (click)="heroService.clearHeroCache$.next()">Clear</button>
-<button (click)="heroService.closeHero()">Close</button>
 
 <ng-container *ngFor="let hero of heroes">
   <app-hero></app-hero>
