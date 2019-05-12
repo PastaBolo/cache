@@ -30,8 +30,8 @@ export class HeroService {
   //   switchMapTo(iif(() => this.errorSuccess$.value, this.heroDBSuccess$, this.heroDBError$)),
   //   delay(500)
   // );
-  // private readonly heroDB$ = this.heroDBSuccess$.pipe(delay(500));
-  private readonly heroDB$ = timer(500).pipe(switchMapTo(this.heroDBError$));
+  private readonly heroDB$ = this.heroDBSuccess$.pipe(delay(500));
+  // private readonly heroDB$ = timer(500).pipe(switchMapTo(this.heroDBError$));
 
   readonly hero$ = merge(
     this.heroDB$,
