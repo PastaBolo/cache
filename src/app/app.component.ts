@@ -10,11 +10,5 @@ import { HeroService } from './hero.service';
 export class AppComponent {
   heroes = [];
 
-  constructor(public heroService: HeroService) {
-    // heroService.hero$.subscribe(
-    //   v => console.log('component', v),
-    //   err => console.log('component', err),
-    //   () => console.log('component complete')
-    // );
-  }
+  constructor(public heroService: HeroService) { }
 }

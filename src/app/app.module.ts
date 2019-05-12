@@ -7,6 +7,7 @@ import { AsyncStatesComponent } from './async-states/async-states.component';
 import { AsyncStatesPipesComponent } from './async-states-pipes/async-states-pipes.component';
 import { LoadingPipe } from './async-states-pipes/loading.pipe';
 import { ErrorPipe } from './async-states-pipes/error.pipe';
+import { ReloadComponent } from './reload/reload.component';
 
 @NgModule({
   declarations: [
@@ -15,7 +16,8 @@ import { ErrorPipe } from './async-states-pipes/error.pipe';
     AsyncStatesComponent,
     AsyncStatesPipesComponent,
     LoadingPipe,
-    ErrorPipe
+    ErrorPipe,
+    ReloadComponent
   ],
   imports: [
     BrowserModule

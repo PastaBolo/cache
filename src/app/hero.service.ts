@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { of, Subject, merge, ReplaySubject, noop, throwError, timer, iif, BehaviorSubject } from 'rxjs';
-import { tap, switchMap, delay, take, switchMapTo, shareReplay } from 'rxjs/operators';
+import { tap, switchMap, delay, take, switchMapTo, shareReplay, repeatWhen } from 'rxjs/operators';
 
 import { cache } from './cache-operator';
 
@@ -26,9 +26,10 @@ export class HeroService {
   //   this.errorSuccess$.next(true);
   // });
 
-  // private readonly heroDB$ = of(noop()).pipe(
-  //   switchMapTo(iif(() => this.errorSuccess$.value, this.heroDBSuccess$, this.heroDBError$)),
-  //   delay(500)
+  // private readonly heroDB$ = iif(
+  //   () => this.errorSuccess$.value,
+  //   this.heroDBSuccess$.pipe(delay(500)),
+  //   timer(500).pipe(switchMapTo(this.heroDBError$))
   // );
   private readonly heroDB$ = this.heroDBSuccess$.pipe(delay(500));
   // private readonly heroDB$ = timer(500).pipe(switchMapTo(this.heroDBError$));
