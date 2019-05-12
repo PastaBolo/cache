@@ -16,22 +16,22 @@ export class HeroService {
   readonly clearHeroCache$ = new Subject<void>();
   readonly updateHero$ = new Subject<Hero>();
 
-  hero = { name: 'James', age: 23 };
+  hero: Hero = { name: 'James', age: 23 };
   private readonly heroDBSuccess$ = of(noop()).pipe(tap(() => console.log('from db')), switchMap(() => of(this.hero)));
   private readonly heroDBError$ = of(noop()).pipe(tap(() => console.log('error from db')), switchMap(() => throwError('nope')));
 
-  private readonly errorSuccess$ = new BehaviorSubject(false);
-  private readonly switchErrorSuccess$ = timer(5000).subscribe(() => {
-    console.log('switching to success');
-    this.errorSuccess$.next(true);
-  });
+  // private readonly errorSuccess$ = new BehaviorSubject(false);
+  // private readonly switchErrorSuccess$ = timer(5000).subscribe(() => {
+  //   console.log('switching to success');
+  //   this.errorSuccess$.next(true);
+  // });
 
   // private readonly heroDB$ = of(noop()).pipe(
   //   switchMapTo(iif(() => this.errorSuccess$.value, this.heroDBSuccess$, this.heroDBError$)),
   //   delay(500)
   // );
-  private readonly heroDB$ = this.heroDBSuccess$.pipe(delay(500));
-  // private readonly heroDB$ = this.heroDBError$;
+  // private readonly heroDB$ = this.heroDBSuccess$.pipe(delay(500));
+  private readonly heroDB$ = timer(500).pipe(switchMapTo(this.heroDBError$));
 
   readonly hero$ = merge(
     this.heroDB$,
