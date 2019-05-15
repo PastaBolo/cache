@@ -43,6 +43,7 @@ export const cache = <T>({ expiration, clear$ }: CacheOperatorConfig = {}): Mono
           cache$.error(err);
         },
         complete() {
+          resetter$.complete();
           cache$.complete();
         }
       });
