@@ -9,11 +9,13 @@ export interface CacheOperatorConfig {
 export const cache = <T>({ expiration, clear$ }: CacheOperatorConfig = {}): MonoTypeOperatorFunction<T> => (source$: Observable<T>) => {
   let cache$: ReplaySubject<T>;
   const startClear$ = new Subject<void>();
-  const resetter$ = new ReplaySubject<void>(1);
+  const switcher$ = new ReplaySubject<void>(1);
   let expired = true;
   let fetching = false;
   let hasError = false;
   let subscription: Subscription;
+
+  switcher$.next();
 
   startClear$.pipe(
     tap(() => expired = false),
@@ -27,7 +29,6 @@ export const cache = <T>({ expiration, clear$ }: CacheOperatorConfig = {}): Mono
     if (!fetching && expired || hasError) {
       if (subscription) { subscription.unsubscribe(); }
       cache$ = new ReplaySubject(1);
-      resetter$.next();
       fetching = true;
       hasError = false;
 
@@ -43,12 +44,12 @@ export const cache = <T>({ expiration, clear$ }: CacheOperatorConfig = {}): Mono
           cache$.error(err);
         },
         complete() {
-          resetter$.complete();
+          switcher$.complete();
           cache$.complete();
         }
       });
     }
 
-    return resetter$.pipe(switchMap(() => cache$));
+    return switcher$.pipe(switchMap(() => cache$));
   });
 };
