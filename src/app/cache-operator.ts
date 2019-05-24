@@ -1,4 +1,4 @@
-import { Observable, Subject, ReplaySubject, MonoTypeOperatorFunction, Subscription, defer, race, timer } from 'rxjs';
+import { Observable, Subject, ReplaySubject, MonoTypeOperatorFunction, Subscription, defer, race, timer, BehaviorSubject } from 'rxjs';
 import { switchMapTo, switchMap, take, tap, takeWhile } from 'rxjs/operators';
 
 export interface CacheOperatorConfig {
@@ -15,8 +15,6 @@ export const cache = <T>({ expiration, clear$ }: CacheOperatorConfig = {}): Mono
   let hasError = false;
   let subscription: Subscription;
 
-  switcher$.next();
-
   startClear$.pipe(
     tap(() => expired = false),
     takeWhile(() => !!(expiration || clear$)),
@@ -29,6 +27,7 @@ export const cache = <T>({ expiration, clear$ }: CacheOperatorConfig = {}): Mono
     if (!fetching && expired || hasError) {
       if (subscription) { subscription.unsubscribe(); }
       cache$ = new ReplaySubject(1);
+      switcher$.next();
       fetching = true;
       hasError = false;
 
